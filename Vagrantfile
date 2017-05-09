@@ -4,7 +4,10 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "minimal/xenial64"
 
+  # for PostgreSQL
   config.vm.network :forwarded_port, guest:5432, host:5432
+  # for MySQL
+  config.vm.network :forwarded_port, guest:3306, host:3306
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "1024"
@@ -31,6 +34,20 @@ Vagrant.configure("2") do |config|
     debconf-set-selections <<< 'mysql-server mysql-server/root_password password mysql123'
     debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password mysql123'
     apt install -y mysql-server
+    echo "default-character-set=utf8" >> /etc/mysql/conf.d/mysql.cnf
+    echo "default-character-set=utf8" >> /etc/mysql/conf.d/mysqldump.cnf
+    cat >> /etc/mysql/mysql.conf.d/mysqld.cnf <<__EOS__
+bind-address=0.0.0.0
+character-set-server=utf8
+skip-character-set-client-handshake
+default-storage-engine=INNODB
+__EOS__
+    systemctl restart mysql
+    mysql -u root --password=mysql123 <<__EOS__
+CREATE DATABASE vagrant;
+GRANT ALL ON vagrant.* TO vagrant@"%" IDENTIFIED BY 'db1234';
+FLUSH PRIVILEGES;
+__EOS__
 
     touch .hushlogin
   SHELL
