@@ -67,8 +67,3 @@ func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
 	}
 	return nil
 }
-
-func fetchTables(db *sql.DB) ([]string, error) {
-	// TODO:
-	return nil, nil
-}
