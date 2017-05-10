@@ -7,6 +7,20 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
+var (
+	headerStyle = xlsx.NewStyle()
+	nullStyle   = xlsx.NewStyle()
+)
+
+func init() {
+	headerStyle.Fill = *xlsx.NewFill("solid", "000000", "")
+	headerStyle.Font.Color = "FFFFFF"
+	headerStyle.ApplyFill = true
+	headerStyle.ApplyFont = true
+	nullStyle.Fill = *xlsx.NewFill("solid", "cccccc", "")
+	nullStyle.ApplyFill = true
+}
+
 // Dump dumps tables to XLSX file.
 func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 	tx, err := db.Begin()
@@ -43,14 +57,15 @@ func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
 	if err != nil {
 		return err
 	}
-	// TODO: column type specific operations.
 	// convert column types and add as the header to sheet.
 	var (
 		h1   = xs.AddRow()
 		vals = make([]interface{}, len(ctypes))
 	)
 	for i, ct := range ctypes {
-		h1.AddCell().SetString(ct.Name())
+		c := h1.AddCell()
+		c.SetString(ct.Name())
+		c.SetStyle(headerStyle)
 		vals[i] = reflect.New(ct.ScanType()).Interface()
 	}
 	// convert values to xlsx'x cells
@@ -61,9 +76,15 @@ func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
 		}
 		xr := xs.AddRow()
 		for _, v := range vals {
+			w := *(v.(*interface{}))
 			c := xr.AddCell()
-			// TODO: NULL value as special.
-			c.SetValue(*(v.(*interface{})))
+			// NULL value's bgcolor should not be default (white).
+			if w == nil {
+				c.SetString("(NULL)")
+				c.SetStyle(nullStyle)
+				continue
+			}
+			c.SetValue(w)
 		}
 	}
 	return nil
