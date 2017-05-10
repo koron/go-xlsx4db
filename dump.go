@@ -27,6 +27,7 @@ func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback()
 	if len(tables) == 0 {
 		tables, err = FetchTables(db)
 		if err != nil {
@@ -39,10 +40,9 @@ func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 			return err
 		}
 		err = dumpTable(xs, tx, t)
-	}
-	err = tx.Rollback()
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
