@@ -50,7 +50,8 @@ func fetchTablesPostgreSQL(db *sql.DB) ([]string, error) {
 	return fetchTableRows(rows)
 }
 
-func fetchTables(db *sql.DB) ([]string, error) {
+// FetchTables fetches all accessible tables from database.
+func FetchTables(db *sql.DB) ([]string, error) {
 	if isMySQL(db) {
 		return fetchTablesMySQL(db)
 	}

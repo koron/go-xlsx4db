@@ -14,7 +14,7 @@ func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 		return err
 	}
 	if len(tables) == 0 {
-		tables, err = fetchTables(db)
+		tables, err = FetchTables(db)
 		if err != nil {
 			return err
 		}
@@ -38,7 +38,8 @@ func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
 	if err != nil {
 		return err
 	}
-	ct, err := rows.ColumnTypes()
+	defer rows.Close()
+	ctypes, err := rows.ColumnTypes()
 	if err != nil {
 		return err
 	}
@@ -46,11 +47,11 @@ func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
 	// convert column types and add as the header to sheet.
 	var (
 		h1   = xs.AddRow()
-		vals = make([]interface{}, len(ct))
+		vals = make([]interface{}, len(ctypes))
 	)
-	for i, t := range ct {
-		h1.AddCell().SetString(t.Name())
-		vals[i] = reflect.New(t.ScanType()).Interface()
+	for i, ct := range ctypes {
+		h1.AddCell().SetString(ct.Name())
+		vals[i] = reflect.New(ct.ScanType()).Interface()
 	}
 	// convert values to xlsx'x cells
 	for rows.Next() {
