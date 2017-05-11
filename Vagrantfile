@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
   config.ssh.insert_key = false
 
   config.vm.provision "shell", inline: <<-SHELL
-    export LANG=ja.
+    update-locale LANG=C.UTF-8 LANGUAGE=
     sed -i.bak -e 's!//archive.ubuntu.com/!//ftp.jaist.ac.jp/pub/Linux/!g' /etc/apt/sources.list
     apt update
     apt install -y debconf-utils
@@ -26,7 +26,7 @@ Vagrant.configure("2") do |config|
     apt install -y postgresql postgresql-contrib
     sudo -u postgres createuser -DRs vagrant
     sudo -u postgres psql -c "ALTER USER vagrant WITH PASSWORD 'db1234'"
-    sudo -u postgres createdb -l C -T template0 -E UTF8 -O vagrant vagrant
+    sudo -u postgres createdb -O vagrant vagrant
     echo "listen_addresses = '*'" >> /etc/postgresql/9.5/main/postgresql.conf
     echo "host vagrant vagrant 0.0.0.0/0 md5" >> /etc/postgresql/9.5/main/pg_hba.conf
     systemctl restart postgresql
