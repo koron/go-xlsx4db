@@ -14,7 +14,7 @@ var (
 
 func init() {
 	headerStyle.Fill = *xlsx.NewFill("solid", "000000", "")
-	headerStyle.Font.Color = "FFFFFF"
+	headerStyle.Font.Color = "FFFFFFFF"
 	headerStyle.ApplyFill = true
 	headerStyle.ApplyFont = true
 	nullStyle.Fill = *xlsx.NewFill("solid", "cccccc", "")
@@ -80,7 +80,7 @@ func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
 			c := xr.AddCell()
 			// NULL value's bgcolor should not be default (white).
 			if w == nil {
-				c.SetString("(NULL)")
+				c.SetString(nullLabel)
 				c.SetStyle(nullStyle)
 				continue
 			}

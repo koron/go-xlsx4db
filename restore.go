@@ -9,6 +9,11 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
+const (
+	nullLabel  = "(NULL)"
+	emptyColor = "FFFFFFFF"
+)
+
 // Restore restores tables from XLSX file.
 func Restore(db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
 	tx, err := db.Begin()
@@ -71,10 +76,22 @@ func restoreTable(tx *sql.Tx, xs *xlsx.Sheet, table string, refresh bool) error 
 	return nil
 }
 
+func isCellNull(xc *xlsx.Cell) bool {
+	if xc.Value != nullLabel {
+		return false
+	}
+	xs := xc.GetStyle()
+	fg := ""
+	if xs.ApplyFill {
+		fg = xs.Fill.FgColor
+	}
+	return fg != "" && fg != emptyColor
+}
+
 func cellToValue(xc *xlsx.Cell) (interface{}, error) {
 	switch xc.Type() {
 	case xlsx.CellTypeString:
-		if xc.Value == "(NULL)" {
+		if isCellNull(xc) {
 			return nil, nil
 		}
 		return xc.String()
