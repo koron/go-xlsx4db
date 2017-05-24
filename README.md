@@ -1,5 +1,30 @@
 # XLSX for Database
 
+## Usage
+
+```console
+$ go get github.com/koron/go-xlsx4db/cmd/xlsx4db
+```
+
+### Options
+
+```console
+$ ./xlsx4db -h
+Usage of xlsx4db:
+  -dbname string
+        DB source string, example:
+          * MySQL: "{user}:{pass}@{addr}/{name}"
+          * PostgreSQL: "postgres://{user}:{pass}@{addr}/{name}?sslmode=disable"
+  -driver string
+        DB driver: "mysql" or "postgres"
+  -mode string
+        Mode: "dump" or "restore"
+  -tables string
+        OPTION: table names to dump/restore
+  -xlsx string
+        Excel file name to operate
+```
+
 ## Tips
 
 ### Tips in Japanese

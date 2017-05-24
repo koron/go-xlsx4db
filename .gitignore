@@ -1,2 +1,4 @@
 .vagrant/
 tmp/
+/xlsx4db
+/xlsx4db.exe

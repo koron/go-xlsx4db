@@ -6,12 +6,17 @@ import (
 	"reflect"
 )
 
+func dbType(db *sql.DB) string {
+	return reflect.ValueOf(db.Driver()).Type().String()
+}
+
 func isMySQL(db *sql.DB) bool {
-	return reflect.ValueOf(db.Driver()).Type().String() == "*mysql.MySQLDriver"
+	return dbType(db) == "*mysql.MySQLDriver"
 }
 
 func isPostgreSQL(db *sql.DB) bool {
-	return reflect.ValueOf(db.Driver()).Type().String() == "*pq.drv"
+	t := dbType(db)
+	return t == "*pq.drv" || t == "*pq.Driver"
 }
 
 func fetchTableRows(rows *sql.Rows) ([]string, error) {
@@ -57,5 +62,6 @@ func FetchTables(db *sql.DB) ([]string, error) {
 	if isPostgreSQL(db) {
 		return fetchTablesPostgreSQL(db)
 	}
-	return nil, fmt.Errorf("not supported DB: %#v", db.Driver())
+	//return nil, fmt.Errorf("not supported DB: %#v", db.Driver())
+	return nil, fmt.Errorf("not supported DB: %#v", dbType(db))
 }
