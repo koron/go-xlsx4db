@@ -32,7 +32,6 @@ func fetchTableRows(rows *sql.Rows) ([]string, error) {
 }
 
 func fetchTablesMySQL(db *sql.DB) ([]string, error) {
-	// TODO:
 	rows, err := db.Query("SHOW TABLES")
 	if err != nil {
 		return nil, err
