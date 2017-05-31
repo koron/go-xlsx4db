@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 func dbType(db *sql.DB) string {
@@ -62,6 +63,33 @@ func FetchTables(db *sql.DB) ([]string, error) {
 	if isPostgreSQL(db) {
 		return fetchTablesPostgreSQL(db)
 	}
-	//return nil, fmt.Errorf("not supported DB: %#v", db.Driver())
 	return nil, fmt.Errorf("not supported DB: %#v", dbType(db))
+}
+
+func buildInsertQueryMySQL(db *sql.DB, table string, columns []string) (string, error) {
+	placeholders := make([]string, len(columns))
+	for i, _ := range columns {
+		placeholders[i] = "?"
+	}
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table,
+		strings.Join(columns, ", "), strings.Join(placeholders, ", ")), nil
+}
+
+func buildInsertQueryPostgreSQL(db *sql.DB, table string, columns []string) (string, error) {
+	placeholders := make([]string, len(columns))
+	for i, _ := range columns {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+	}
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table,
+		strings.Join(columns, ", "), strings.Join(placeholders, ", ")), nil
+}
+
+func BuildInsertQuery(db *sql.DB, table string, columns []string) (string, error) {
+	if isMySQL(db) {
+		return buildInsertQueryMySQL(db, table, columns)
+	}
+	if isPostgreSQL(db) {
+		return buildInsertQueryPostgreSQL(db, table, columns)
+	}
+	return "", fmt.Errorf("not supported DB: %#v", dbType(db))
 }

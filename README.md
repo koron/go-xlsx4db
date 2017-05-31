@@ -33,7 +33,7 @@ Usage of xlsx4db:
 
     セルの内容を `(NULL)` とし、背景を白以外の色で塗りつぶす。
 
-## Tips in English
+### Tips in English
 
 *   How to make a column `NULL`
 
@@ -45,3 +45,6 @@ Usage of xlsx4db:
 *   How does retrieve table names?
     *   PostgreSQL: `SELECT relname FROM pg_stat_user_tables`
     *   MySQL: `SHOW TABLES` or `SHOW TABLES FROM {db_name}`
+
+*   What dbname does MySQL accept?
+    *   `vagrant:db1234@tcp(127.0.0.1:3306)/vagrant`

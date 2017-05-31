@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/tealeg/xlsx"
 )
@@ -30,9 +29,12 @@ func Restore(db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
 			}
 		}
 		tables, err = FetchTables(db)
+		if err != nil {
+			return err
+		}
 	}
 	for _, xs := range sheets {
-		err := restoreTable(tx, xs, xs.Name, refresh)
+		err := restoreTable(db, tx, xs, xs.Name, refresh)
 		if err != nil {
 			return err
 		}
@@ -40,7 +42,7 @@ func Restore(db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
 	return nil
 }
 
-func restoreTable(tx *sql.Tx, xs *xlsx.Sheet, table string, refresh bool) error {
+func restoreTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string, refresh bool) error {
 	if refresh {
 		_, err := tx.Exec("DELETE FROM " + table)
 		if err != nil {
@@ -49,16 +51,16 @@ func restoreTable(tx *sql.Tx, xs *xlsx.Sheet, table string, refresh bool) error 
 	}
 	cols := xs.Rows[0].Cells
 	columns := make([]string, len(cols))
-	placeholders := make([]string, len(cols))
 	for i, xc := range cols {
 		columns[i] = xc.Value
-		placeholders[i] = fmt.Sprintf("$%d", i+1)
 	}
-	q := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table,
-		strings.Join(columns, ", "), strings.Join(placeholders, ", "))
-	st, err := tx.Prepare(q)
+	q, err := BuildInsertQuery(db, table, columns)
 	if err != nil {
 		return err
+	}
+	st, err := tx.Prepare(q)
+	if err != nil {
+		return fmt.Errorf("Prepare(%q) failed: %s", q, err.Error())
 	}
 	args := make([]interface{}, len(cols))
 	for _, xr := range xs.Rows[1:] {
