@@ -33,9 +33,9 @@ func main2() error {
 	flag.StringVar(&dbname, "dbname", "", `DB source string, example:
 	  * MySQL: "{user}:{pass}@{addr}/{name}"
 	  * PostgreSQL: "postgres://{user}:{pass}@{addr}/{name}?sslmode=disable"`)
-	flag.StringVar(&mode, "mode", "", `Mode: "dump" or "restore"`)
+	flag.StringVar(&mode, "mode", "", `Mode: "dump", "restore" or "update"`)
 	flag.StringVar(&xlsxfile, "xlsx", "", `Excel file name to operate`)
-	flag.StringVar(&tables, "tables", "", `OPTION: table names to dump/restore`)
+	flag.StringVar(&tables, "tables", "", `OPTION: table names to operate`)
 	flag.Parse()
 
 	// check value of flags.

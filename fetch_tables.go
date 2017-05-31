@@ -2,6 +2,7 @@ package xlsx4db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -90,6 +91,37 @@ func BuildInsertQuery(db *sql.DB, table string, columns []string) (string, error
 	}
 	if isPostgreSQL(db) {
 		return buildInsertQueryPostgreSQL(db, table, columns)
+	}
+	return "", fmt.Errorf("not supported DB: %#v", dbType(db))
+}
+
+func buildUpsertQueryMySQL(db *sql.DB, table string, columns []string) (string, error) {
+	placeholders := make([]string, len(columns))
+	updates := make([]string, len(columns))
+	for i, cname := range columns {
+		placeholders[i] = "?"
+		updates[i] = fmt.Sprintf("%s=?", cname)
+	}
+	q := fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s) ON DUPLICATE KEY UPDATE %s",
+		table,
+		strings.Join(columns, ", "),
+		strings.Join(placeholders, ", "),
+		strings.Join(updates, ", "))
+	return q, nil
+}
+
+func buildUpsertQueryPostgreSQL(db *sql.DB, table string, columns []string) (string, error) {
+	// TODO:
+	return "", errors.New("BuildUpsertQuery for PostgreSQL is not supported yet")
+}
+
+func BuildUpsertQuery(db *sql.DB, table string, columns []string) (string, error) {
+	if isMySQL(db) {
+		return buildUpsertQueryMySQL(db, table, columns)
+	}
+	if isPostgreSQL(db) {
+		return buildUpsertQueryPostgreSQL(db, table, columns)
 	}
 	return "", fmt.Errorf("not supported DB: %#v", dbType(db))
 }
