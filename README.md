@@ -1,5 +1,9 @@
 # XLSX for Database
 
+Dump and restore RDBMS by using Excel (XLSX)
+
+[![Build Status](https://travis-ci.org/koron/go-xlsx4db.svg?branch=master)](https://travis-ci.org/koron/go-xlsx4db)
+
 ## Usage
 
 ```console
