@@ -96,7 +96,7 @@ func cellToValue(xc *xlsx.Cell) (interface{}, error) {
 		if isCellNull(xc) {
 			return nil, nil
 		}
-		return xc.String()
+		return xc.String(), nil
 	case xlsx.CellTypeFormula:
 		return xc.Value, nil
 	case xlsx.CellTypeNumeric:
