@@ -1,0 +1,11 @@
+language: go
+go:
+  - 1.8.x
+  - 1.9.x
+  - master
+sudo: false
+install:
+  - go get -v -d -t ./...
+script:
+  - go build
+  - go test -v
