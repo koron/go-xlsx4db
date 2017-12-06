@@ -97,7 +97,7 @@ func cellToValue(xc *xlsx.Cell) (interface{}, error) {
 			return nil, nil
 		}
 		return xc.String(), nil
-	case xlsx.CellTypeFormula:
+	case xlsx.CellTypeStringFormula:
 		return xc.Value, nil
 	case xlsx.CellTypeNumeric:
 		if xc.NumFmt != "general" {
@@ -112,8 +112,6 @@ func cellToValue(xc *xlsx.Cell) (interface{}, error) {
 		return nil, fmt.Errorf("cell error: %s", xc.Value)
 	case xlsx.CellTypeDate:
 		return xc.GetTime(false)
-	case xlsx.CellTypeGeneral:
-		return xc.Value, nil
 	}
 	return nil, errors.New("unknown cell type")
 }
