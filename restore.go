@@ -28,10 +28,10 @@ func Restore(db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
 				sheets = append(sheets, xs)
 			}
 		}
-		tables, err = FetchTables(db)
-		if err != nil {
-			return err
-		}
+		//tables, err = FetchTables(db)
+		//if err != nil {
+		//	return err
+		//}
 	}
 	for _, xs := range sheets {
 		err := restoreTable(db, tx, xs, xs.Name, refresh)
@@ -60,11 +60,11 @@ func restoreTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string, refresh 
 	}
 	st, err := tx.Prepare(q)
 	if err != nil {
-		return fmt.Errorf("Prepare(%q) failed: %s", q, err.Error())
+		return fmt.Errorf("prepare(%q) failed: %s", q, err.Error())
 	}
 	args := make([]interface{}, len(cols))
 	for _, xr := range xs.Rows[1:] {
-		for i, _ := range args {
+		for i := range args {
 			args[i], err = cellToValue(xr.Cells[i])
 			if err != nil {
 				return err

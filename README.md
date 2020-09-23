@@ -2,7 +2,9 @@
 
 Dump and restore RDBMS by using Excel (XLSX)
 
-[![Build Status](https://travis-ci.org/koron/go-xlsx4db.svg?branch=master)](https://travis-ci.org/koron/go-xlsx4db)
+[![GoDoc](https://godoc.org/github.com/koron/go-xlsx4db?status.svg)](https://godoc.org/github.com/koron/go-xlsx4db)
+[![Actions/Go](https://github.com/koron/go-xlsx4db/workflows/Go/badge.svg)](https://github.com/koron/go-xlsx4db/actions?query=workflow%3AGo)
+[![Go Report Card](https://goreportcard.com/badge/github.com/koron/go-xlsx4db)](https://goreportcard.com/report/github.com/koron/go-xlsx4db)
 
 ## Usage
 

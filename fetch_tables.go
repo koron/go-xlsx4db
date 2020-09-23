@@ -68,7 +68,7 @@ func FetchTables(db *sql.DB) ([]string, error) {
 
 func buildInsertQueryMySQL(db *sql.DB, table string, columns []string) (string, error) {
 	placeholders := make([]string, len(columns))
-	for i, _ := range columns {
+	for i := range columns {
 		placeholders[i] = "?"
 	}
 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table,
@@ -77,13 +77,14 @@ func buildInsertQueryMySQL(db *sql.DB, table string, columns []string) (string, 
 
 func buildInsertQueryPostgreSQL(db *sql.DB, table string, columns []string) (string, error) {
 	placeholders := make([]string, len(columns))
-	for i, _ := range columns {
+	for i := range columns {
 		placeholders[i] = fmt.Sprintf("$%d", i+1)
 	}
 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table,
 		strings.Join(columns, ", "), strings.Join(placeholders, ", ")), nil
 }
 
+// BuildInsertQuery builds na insert statement with given columns.
 func BuildInsertQuery(db *sql.DB, table string, columns []string) (string, error) {
 	if isMySQL(db) {
 		return buildInsertQueryMySQL(db, table, columns)
@@ -110,22 +111,23 @@ func buildUpsertQueryMySQL(db *sql.DB, table string, columns []string) (string, 
 	return q, nil
 }
 
-func buildUpsertQueryPostgreSQL(db *sql.DB, table string, columns []string) (string, error) {
-	placeholders := make([]string, len(columns))
-	updates := make([]string, len(columns))
-	for i, cname := range columns {
-		placeholders[i] = fmt.Sprintf("$%d", i+1)
-		updates[i] = fmt.Sprintf("%s=$%d", cname, i+len(columns)+1)
-	}
-	q := fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT DO UPDATE SET %s",
-		table,
-		strings.Join(columns, ", "),
-		strings.Join(placeholders, ", "),
-		strings.Join(updates, ", "))
-	return q, nil
-}
+//func buildUpsertQueryPostgreSQL(db *sql.DB, table string, columns []string) (string, error) {
+//	placeholders := make([]string, len(columns))
+//	updates := make([]string, len(columns))
+//	for i, cname := range columns {
+//		placeholders[i] = fmt.Sprintf("$%d", i+1)
+//		updates[i] = fmt.Sprintf("%s=$%d", cname, i+len(columns)+1)
+//	}
+//	q := fmt.Sprintf(
+//		"INSERT INTO %s (%s) VALUES (%s) ON CONFLICT DO UPDATE SET %s",
+//		table,
+//		strings.Join(columns, ", "),
+//		strings.Join(placeholders, ", "),
+//		strings.Join(updates, ", "))
+//	return q, nil
+//}
 
+// BuildUpsertQuery builds "insert or update" statement with given params.
 func BuildUpsertQuery(db *sql.DB, table string, columns []string) (string, error) {
 	if isMySQL(db) {
 		return buildUpsertQueryMySQL(db, table, columns)
