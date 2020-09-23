@@ -2,7 +2,6 @@ package xlsx4db
 
 import (
 	"database/sql"
-	"reflect"
 
 	"github.com/tealeg/xlsx"
 )
@@ -17,6 +16,7 @@ func init() {
 	headerStyle.Font.Color = "FFFFFFFF"
 	headerStyle.ApplyFill = true
 	headerStyle.ApplyFont = true
+
 	nullStyle.Fill = *xlsx.NewFill("solid", "cccccc", "")
 	nullStyle.ApplyFill = true
 }
@@ -48,7 +48,7 @@ func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 }
 
 func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
-	rows, err := tx.Query("SELECT * FROM " + table)
+	rows, err := tx.Query("SELECT * FROM \"" + table + "\"")
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
 		c := h1.AddCell()
 		c.SetString(ct.Name())
 		c.SetStyle(headerStyle)
-		vals[i] = reflect.New(ct.ScanType()).Interface()
+		vals[i] = new(interface{})
 	}
 	// convert values to xlsx'x cells
 	for rows.Next() {
@@ -76,15 +76,15 @@ func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
 		}
 		xr := xs.AddRow()
 		for _, v := range vals {
-			w := *(v.(*interface{}))
 			c := xr.AddCell()
 			// NULL value's bgcolor should not be default (white).
-			if w == nil {
+			w := v.(*interface{})
+			if *w == nil {
 				c.SetString(nullLabel)
 				c.SetStyle(nullStyle)
 				continue
 			}
-			c.SetValue(w)
+			c.SetValue(*w)
 		}
 	}
 	return nil
