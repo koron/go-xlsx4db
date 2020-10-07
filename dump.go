@@ -34,12 +34,16 @@ func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 			return err
 		}
 	}
+	var quote string
+	if isPostgreSQL(db) {
+		quote = `"`
+	}
 	for _, t := range tables {
 		xs, err := xf.AddSheet(t)
 		if err != nil {
 			return err
 		}
-		err = dumpTable(xs, tx, t)
+		err = dumpTable(xs, tx, t, quote)
 		if err != nil {
 			return err
 		}
@@ -47,8 +51,11 @@ func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 	return nil
 }
 
-func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string) error {
-	rows, err := tx.Query("SELECT * FROM \"" + table + "\"")
+func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string, quote string) error {
+	if quote != "" {
+		table = quote + table + quote
+	}
+	rows, err := tx.Query("SELECT * FROM " + table)
 	if err != nil {
 		return err
 	}
