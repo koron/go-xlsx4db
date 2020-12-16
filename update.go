@@ -13,7 +13,6 @@ func Update(db *sql.DB, xf *xlsx.File, tables ...string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Commit()
 	sheets := xf.Sheets
 	if len(tables) > 0 {
 		sheets = make([]*xlsx.Sheet, 0, len(tables))
@@ -30,10 +29,11 @@ func Update(db *sql.DB, xf *xlsx.File, tables ...string) error {
 	for _, xs := range sheets {
 		err := updateTable(db, tx, xs, xs.Name)
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 	}
-	return nil
+	return tx.Commit()
 }
 
 func updateTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string) error {
