@@ -71,7 +71,7 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        go build
+        go build ./cmd/xlsx4db
 
     - name: Archive
       shell: bash
