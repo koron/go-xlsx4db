@@ -19,7 +19,6 @@ func Restore(db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Commit()
 	sheets := xf.Sheets
 	if len(tables) > 0 {
 		sheets = make([]*xlsx.Sheet, 0, len(tables))
@@ -36,10 +35,11 @@ func Restore(db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
 	for _, xs := range sheets {
 		err := restoreTable(db, tx, xs, xs.Name, refresh)
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 	}
-	return nil
+	return tx.Commit()
 }
 
 func restoreTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string, refresh bool) error {
