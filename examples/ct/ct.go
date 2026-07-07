@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -16,7 +17,7 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
-	tables, err := xlsx4db.FetchTables(db)
+	tables, err := xlsx4db.FetchTables(context.Background(), db)
 	if err != nil {
 		panic(err)
 	}

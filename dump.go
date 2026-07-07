@@ -1,6 +1,7 @@
 package xlsx4db
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/tealeg/xlsx"
@@ -23,13 +24,17 @@ func init() {
 
 // Dump dumps tables to XLSX file.
 func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
-	tx, err := db.Begin()
+	return DumpContext(context.Background(), xf, db, tables...)
+}
+
+func DumpContext(ctx context.Context, xf *xlsx.File, db *sql.DB, tables ...string) error {
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 	if len(tables) == 0 {
-		tables, err = FetchTables(db)
+		tables, err = FetchTables(ctx, db)
 		if err != nil {
 			return err
 		}
@@ -43,7 +48,7 @@ func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 		if err != nil {
 			return err
 		}
-		err = dumpTable(xs, tx, t, quote)
+		err = dumpTable(ctx, xs, tx, t, quote)
 		if err != nil {
 			return err
 		}
@@ -51,11 +56,11 @@ func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 	return nil
 }
 
-func dumpTable(xs *xlsx.Sheet, tx *sql.Tx, table string, quote string) error {
+func dumpTable(ctx context.Context, xs *xlsx.Sheet, tx *sql.Tx, table string, quote string) error {
 	if quote != "" {
 		table = quote + table + quote
 	}
-	rows, err := tx.Query("SELECT * FROM " + table)
+	rows, err := tx.QueryContext(ctx, "SELECT * FROM "+table)
 	if err != nil {
 		return err
 	}
