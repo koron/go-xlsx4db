@@ -1,6 +1,7 @@
 package xlsx4db
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -15,7 +16,12 @@ const (
 
 // Restore restores tables from XLSX file.
 func Restore(db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
-	tx, err := db.Begin()
+	return RestoreContext(context.Background(), db, xf, refresh, tables...)
+}
+
+// RestoreContext restores tables from XLSX file with context.Context.
+func RestoreContext(ctx context.Context, db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -27,13 +33,9 @@ func Restore(db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
 				sheets = append(sheets, xs)
 			}
 		}
-		//tables, err = FetchTables(db)
-		//if err != nil {
-		//	return err
-		//}
 	}
 	for _, xs := range sheets {
-		err := restoreTable(db, tx, xs, xs.Name, refresh)
+		err := restoreTable(ctx, db, tx, xs, xs.Name, refresh)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -42,9 +44,9 @@ func Restore(db *sql.DB, xf *xlsx.File, refresh bool, tables ...string) error {
 	return tx.Commit()
 }
 
-func restoreTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string, refresh bool) error {
+func restoreTable(ctx context.Context, db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string, refresh bool) error {
 	if refresh {
-		_, err := tx.Exec("DELETE FROM " + table)
+		_, err := tx.ExecContext(ctx, "DELETE FROM " + table)
 		if err != nil {
 			return err
 		}
@@ -58,7 +60,7 @@ func restoreTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string, refresh 
 	if err != nil {
 		return err
 	}
-	st, err := tx.Prepare(q)
+	st, err := tx.PrepareContext(ctx, q)
 	if err != nil {
 		return fmt.Errorf("prepare(%q) failed: %s", q, err.Error())
 	}
@@ -70,7 +72,7 @@ func restoreTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string, refresh 
 				return err
 			}
 		}
-		_, err := st.Exec(args...)
+		_, err := st.ExecContext(ctx, args...)
 		if err != nil {
 			return err
 		}

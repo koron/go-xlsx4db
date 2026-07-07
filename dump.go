@@ -27,6 +27,7 @@ func Dump(xf *xlsx.File, db *sql.DB, tables ...string) error {
 	return DumpContext(context.Background(), xf, db, tables...)
 }
 
+// DumpContext dumps tables to XLSX file with context.Context.
 func DumpContext(ctx context.Context, xf *xlsx.File, db *sql.DB, tables ...string) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
