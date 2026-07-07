@@ -35,7 +35,7 @@ func DumpContext(ctx context.Context, xf *xlsx.File, db *sql.DB, tables ...strin
 	}
 	defer tx.Rollback()
 	if len(tables) == 0 {
-		tables, err = FetchTables(ctx, db)
+		tables, err = FetchTablesContext(ctx, db)
 		if err != nil {
 			return err
 		}

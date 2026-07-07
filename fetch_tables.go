@@ -57,7 +57,12 @@ func fetchTablesPostgreSQL(ctx context.Context, db *sql.DB) ([]string, error) {
 }
 
 // FetchTables fetches all accessible tables from database.
-func FetchTables(ctx context.Context, db *sql.DB) ([]string, error) {
+func FetchTables(db *sql.DB) ([]string, error) {
+	return FetchTablesContext(context.Background(), db)
+}
+
+// FetchTablesContext fetches all accessible tables from database with context.Context.
+func FetchTablesContext(ctx context.Context, db *sql.DB) ([]string, error) {
 	if isMySQL(db) {
 		return fetchTablesMySQL(ctx, db)
 	}
