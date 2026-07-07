@@ -1,6 +1,7 @@
 package xlsx4db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"reflect"
@@ -37,8 +38,8 @@ func fetchTableRows(rows *sql.Rows) ([]string, error) {
 	return tables, nil
 }
 
-func fetchTablesMySQL(db *sql.DB) ([]string, error) {
-	rows, err := db.Query("SHOW TABLES")
+func fetchTablesMySQL(ctx context.Context, db *sql.DB) ([]string, error) {
+	rows, err := db.QueryContext(ctx, "SHOW TABLES")
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +47,8 @@ func fetchTablesMySQL(db *sql.DB) ([]string, error) {
 	return fetchTableRows(rows)
 }
 
-func fetchTablesPostgreSQL(db *sql.DB) ([]string, error) {
-	rows, err := db.Query("SELECT relname FROM pg_stat_user_tables")
+func fetchTablesPostgreSQL(ctx context.Context, db *sql.DB) ([]string, error) {
+	rows, err := db.QueryContext(ctx, "SELECT relname FROM pg_stat_user_tables")
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +58,16 @@ func fetchTablesPostgreSQL(db *sql.DB) ([]string, error) {
 
 // FetchTables fetches all accessible tables from database.
 func FetchTables(db *sql.DB) ([]string, error) {
+	return FetchTablesContext(context.Background(), db)
+}
+
+// FetchTablesContext fetches all accessible tables from database with context.Context.
+func FetchTablesContext(ctx context.Context, db *sql.DB) ([]string, error) {
 	if isMySQL(db) {
-		return fetchTablesMySQL(db)
+		return fetchTablesMySQL(ctx, db)
 	}
 	if isPostgreSQL(db) {
-		return fetchTablesPostgreSQL(db)
+		return fetchTablesPostgreSQL(ctx, db)
 	}
 	return nil, fmt.Errorf("not supported DB: %#v", dbType(db))
 }
