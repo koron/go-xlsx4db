@@ -1,6 +1,7 @@
 package xlsx4db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -9,7 +10,12 @@ import (
 
 // Update updates (UPDATE or INSERT) tables from XLSX file.
 func Update(db *sql.DB, xf *xlsx.File, tables ...string) error {
-	tx, err := db.Begin()
+	return UpdateContext(context.Background(), db, xf, tables...)
+}
+
+// UpdateContext updates (UPDATE or INSERT) tables from XLSX file with context.Context.
+func UpdateContext(ctx context.Context, db *sql.DB, xf *xlsx.File, tables ...string) error {
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -21,13 +27,9 @@ func Update(db *sql.DB, xf *xlsx.File, tables ...string) error {
 				sheets = append(sheets, xs)
 			}
 		}
-		//tables, err = FetchTables(db)
-		//if err != nil {
-		//	return err
-		//}
 	}
 	for _, xs := range sheets {
-		err := updateTable(db, tx, xs, xs.Name)
+		err := updateTable(ctx, db, tx, xs, xs.Name)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -36,7 +38,7 @@ func Update(db *sql.DB, xf *xlsx.File, tables ...string) error {
 	return tx.Commit()
 }
 
-func updateTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string) error {
+func updateTable(ctx context.Context, db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string) error {
 	cols := xs.Rows[0].Cells
 	columns := make([]string, len(cols))
 	for i, xc := range cols {
@@ -46,7 +48,7 @@ func updateTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string) error {
 	if err != nil {
 		return err
 	}
-	st, err := tx.Prepare(q)
+	st, err := tx.PrepareContext(ctx, q)
 	if err != nil {
 		return fmt.Errorf("prepare(%q) failed: %s", q, err.Error())
 	}
@@ -59,7 +61,7 @@ func updateTable(db *sql.DB, tx *sql.Tx, xs *xlsx.Sheet, table string) error {
 			}
 		}
 		args2 := append(args, args...)
-		_, err := st.Exec(args2...)
+		_, err := st.ExecContext(ctx, args2...)
 		if err != nil {
 			return err
 		}
